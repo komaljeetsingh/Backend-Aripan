@@ -128,6 +128,7 @@ const getAllOrders = async (req, res) => {
 const getOrderCustomer = async (req, res) => {
   try {
     const orders = await Order.find({ user: req.params.id }).sort({ _id: -1 });
+    
     res.send(orders);
   } catch (err) {
     res.status(500).send({
@@ -139,6 +140,7 @@ const getOrderCustomer = async (req, res) => {
 const getOrderById = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
+    console.log("Custom", order);
     res.send(order);
   } catch (err) {
     res.status(500).send({

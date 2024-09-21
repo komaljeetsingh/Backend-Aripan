@@ -41,7 +41,7 @@ const getShowingProducts = async (req, res) => {
   try {
     const products = await Product.find({ status: "show" }).sort({ _id: -1 });
     res.send(products);
-    // console.log("products", products);
+    console.log("products All", products);
   } catch (err) {
     res.status(500).send({
       message: err.message,
@@ -103,11 +103,14 @@ const getAllProducts = async (req, res) => {
     const totalDoc = await Product.countDocuments(queryObject);
 
     const products = await Product.find(queryObject)
-      .populate({ path: "category", select: "_id name" })
+      .populate({ path: "category", select: "_id name isService" })
       .populate({ path: "categories", select: "_id name" })
       .sort(sortObject)
       .skip(skip)
       .limit(limits);
+
+      console.log("get all products", products);
+      
 
     res.send({
       products,
@@ -138,7 +141,7 @@ const getProductBySlug = async (req, res) => {
 const getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id)
-      .populate({ path: "category", select: "_id, name" })
+      .populate({ path: "category", select: "_id, name isService" })
       .populate({ path: "categories", select: "_id name" });
 
     res.send(product);
@@ -266,50 +269,43 @@ const getShowingStoreProducts = async (req, res) => {
   // console.log("req.body", req);
   try {
     const queryObject = { status: "show" };
-
     const { category, title, slug } = req.query;
     // console.log("title", title);
-
     // console.log("query", req);
-
     if (category) {
       queryObject.categories = {
         $in: [category],
       };
     }
-
     if (title) {
       const titleQueries = languageCodes.map((lang) => ({
         [`title.${lang}`]: { $regex: `${title}`, $options: "i" },
       }));
-
       queryObject.$or = titleQueries;
     }
     if (slug) {
       queryObject.slug = { $regex: slug, $options: "i" };
     }
-
     let products = [];
-    let popularProducts = [];
+    let popularProductss = [];
     let discountedProducts = [];
     let relatedProducts = [];
-
     if (slug) {
       products = await Product.find(queryObject)
-        .populate({ path: "category", select: "name _id" })
+        .populate({ path: "category", select: "name _id isService" })
         .sort({ _id: -1 })
         .limit(100);
       relatedProducts = await Product.find({
         category: products[0]?.category,
-      }).populate({ path: "category", select: "_id name" });
+      }).populate({ path: "category", select: "_id name isService" });
     } else if (title || category) {
       products = await Product.find(queryObject)
-        .populate({ path: "category", select: "name _id" })
+        .populate({ path: "category", select: "name _id isService" })
         .sort({ _id: -1 })
         .limit(100);
     } else {
-      popularProducts = await Product.find({ status: "show" })
-        .populate({ path: "category", select: "name _id" })
+      popularProductss = await Product.find({ status: "show" })
+        .populate({ path: "category", select: "name _id isService" })
         .sort({ sales: -1 })
         .limit(20);
 
@@ -343,14 +339,18 @@ const getShowingStoreProducts = async (req, res) => {
           },
         ],
       })
-        .populate({ path: "category", select: "name _id" })
+        .populate({ path: "category", select: "name _id isService" })
         .sort({ _id: -1 })
         .limit(20);
     }
 
+    const popularServices=popularProductss.filter(item => item.category.isService === "Yes");
+    const popularProducts=popularProductss.filter(item => item.category.isService === "No");
+
     res.send({
       products,
       popularProducts,
+      popularServices,
       relatedProducts,
       discountedProducts,
     });
@@ -365,9 +365,7 @@ const deleteManyProducts = async (req, res) => {
   try {
     const cname = req.cname;
     // console.log("deleteMany", cname, req.body.ids);
-
     await Product.deleteMany({ _id: req.body.ids });
-
     res.send({
       message: `Products Delete Successfully!`,
     });

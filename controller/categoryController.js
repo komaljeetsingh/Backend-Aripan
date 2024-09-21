@@ -43,7 +43,6 @@ const getShowingCategory = async (req, res) => {
     });
 
     const categoryList = readyToParentAndChildrenCategory(categories);
-    console.log("All Data", categoryList);
     
     res.send(categoryList);
   } catch (err) {
