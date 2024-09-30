@@ -42,6 +42,50 @@ const orderSchema = new mongoose.Schema(
         type: String,
         required: false,
       },
+      time: {
+        type: String,
+        required: false,
+      },
+      dob: {
+        type: String,
+        required: false,
+      },
+      gender: {
+        type: String,
+        required: false,
+      },
+      bedroomstype: {
+        type: String,
+        required: false,
+      },
+      numberOfPerson: {
+        type: String,
+        required: false,
+      },
+      eventplace: {
+        type: String,
+        required: false,
+      },
+      eventtype: {
+        type: String,
+        required: false,
+      },
+      width: {
+        type: String,
+        required: false,
+      },
+      length: {
+        type: String,
+        required: false,
+      },
+      place: {
+        type: String,
+        required: false,
+      },
+      headposition: {
+        type: String,
+        required: false,
+      },
     },
     subTotal: {
       type: Number,
@@ -55,6 +99,11 @@ const orderSchema = new mongoose.Schema(
       type: Number,
       required: true,
       default: 0,
+    },
+    isService: {
+      type: String,
+      required: false,
+      default: "No"
     },
 
     total: {

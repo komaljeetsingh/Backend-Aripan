@@ -12,7 +12,7 @@ const { handleProductQuantity } = require("../lib/stock-controller/others");
 const { formatAmountForStripe } = require("../lib/stripe/stripe");
 
 const addOrder = async (req, res) => {
-  // console.log("addOrder", req.body);
+  console.log("addOrder", req.body);
   try {
     const newOrder = new Order({
       ...req.body,
@@ -30,6 +30,9 @@ const addOrder = async (req, res) => {
 
 //create payment intent for stripe
 const createPaymentIntent = async (req, res) => {
+
+  console.log("Razorpay order Intent", req.body);
+
   const { total: amount, cardInfo: payment_intent, email } = req.body;
   // console.log("req.body", amount);
   // Validate the amount that was passed from the client.
@@ -86,6 +89,8 @@ const createPaymentIntent = async (req, res) => {
 
 const createOrderByRazorPay = async (req, res) => {
   try {
+    console.log("Razorpay order Create", req.body);
+
     const storeSetting = await Setting.findOne({ name: "storeSetting" });
     // console.log("createOrderByRazorPay", storeSetting?.setting);
 
@@ -114,6 +119,8 @@ const createOrderByRazorPay = async (req, res) => {
 
 const addRazorpayOrder = async (req, res) => {
   try {
+    console.log("Razorpay order New", req.body);
+    
     const newOrder = new Order({
       ...req.body,
       user: req.user._id,

@@ -266,51 +266,69 @@ const deleteProduct = (req, res) => {
 };
 
 const getShowingStoreProducts = async (req, res) => {
-  // console.log("req.body", req);
   try {
     const queryObject = { status: "show" };
     const { category, title, slug } = req.query;
-    // console.log("title", title);
-    // console.log("query", req);
+    console.log("category", category);
+    console.log("title", title);
+    console.log("slug", slug);
+    
+    let products = [];
+    let popularProducts = [];
+    let popularServices = [];
+    let discountedProducts = [];
+    let relatedProducts = [];
+    let allProducts = [];
+
+    // If category is provided
     if (category) {
       queryObject.categories = {
         $in: [category],
       };
     }
+
+    // If title is provided
     if (title) {
       const titleQueries = languageCodes.map((lang) => ({
         [`title.${lang}`]: { $regex: `${title}`, $options: "i" },
       }));
       queryObject.$or = titleQueries;
     }
+
+    // If slug is provided
     if (slug) {
       queryObject.slug = { $regex: slug, $options: "i" };
     }
-    let products = [];
-    let popularProductss = [];
-    let discountedProducts = [];
-    let relatedProducts = [];
+
+    // Fetch data based on query
     if (slug) {
       products = await Product.find(queryObject)
         .populate({ path: "category", select: "name _id isService" })
         .sort({ _id: -1 })
         .limit(100);
+
+      // Find related products based on the category of the first product
       relatedProducts = await Product.find({
         category: products[0]?.category,
       }).populate({ path: "category", select: "_id name isService" });
+
     } else if (title || category) {
+      console.log("Title Category");
+      
       products = await Product.find(queryObject)
         .populate({ path: "category", select: "name _id isService" })
         .sort({ _id: -1 })
         .limit(100);
+
     } else {
-      popularProductss = await Product.find({ status: "show" })
+      // Fetch popular and discounted products
+      popularProducts = await Product.find({ status: "show" })
         .populate({ path: "category", select: "name _id isService" })
         .sort({ sales: -1 })
         .limit(20);
 
       discountedProducts = await Product.find({
-        status: "show", // Ensure status "show" for discounted products
+        status: "show", 
         $or: [
           {
             $and: [
@@ -330,7 +348,7 @@ const getShowingStoreProducts = async (req, res) => {
               {
                 $expr: {
                   $gt: [
-                    { $toDouble: "$prices.discount" }, // Convert the discount field to a double
+                    { $toDouble: "$prices.discount" }, 
                     0,
                   ],
                 },
@@ -342,13 +360,21 @@ const getShowingStoreProducts = async (req, res) => {
         .populate({ path: "category", select: "name _id isService" })
         .sort({ _id: -1 })
         .limit(20);
+
+      // Fetch all products if no query (slug, title, or category) is provided
+      allProducts = await Product.find({ status: "show" })
+        .populate({ path: "category", select: "name _id isService" })
+        .sort({ _id: -1 });
     }
 
-    const popularServices=popularProductss.filter(item => item.category.isService === "Yes");
-    const popularProducts=popularProductss.filter(item => item.category.isService === "No");
+    // Filter popular products and services based on 'isService' field
+    popularServices = popularProducts.filter(item => item.category.isService === "Yes");
+    popularProducts = popularProducts.filter(item => item.category.isService === "No");    
 
+    // Send response with all fetched data
     res.send({
       products,
+      allProducts, // This will contain all products if no query is provided
       popularProducts,
       popularServices,
       relatedProducts,

@@ -6,6 +6,10 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
+    selectForm: {
+      type: Array,
+      required: false,
+    },
     sku: {
       type: String,
       required: false,

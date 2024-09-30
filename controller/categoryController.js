@@ -40,7 +40,7 @@ const getShowingCategory = async (req, res) => {
   try {
     const categories = await Category.find({ status: "show" }).sort({
       _id: -1,
-    });
+    });    
 
     const categoryList = readyToParentAndChildrenCategory(categories);
     
@@ -58,7 +58,7 @@ const getAllCategory = async (req, res) => {
     const categories = await Category.find({}).sort({ _id: -1 });
 
     const categoryList = readyToParentAndChildrenCategory(categories);
-    //  console.log('categoryList',categoryList)
+     console.log('categoryList',categoryList)
     res.send(categoryList);
   } catch (err) {
     res.status(500).send({
@@ -245,6 +245,7 @@ const readyToParentAndChildrenCategory = (categories, parentId = null) => {
       isService: cate.isService,
       icon: cate.icon,
       status: cate.status,
+      createdAt: cate.createdAt,
       children: readyToParentAndChildrenCategory(categories, cate._id),
     });
   }
